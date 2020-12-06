@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:mvc="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+
+    <context:component-scan base-package="com.qu.crowd">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+        <context:exclude-filter type="assignable" expression="com.qu.crowd.config.CrowdSecurityConfig"/>
+    </context:component-scan>
+    
+    <!-- 加载jdbc.properties -->
+    <context:property-placeholder location="classpath:db.properties"/>
+    <!-- 配置数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <!-- 连接数据库的用户名-->
+        <property name="username" value="${name}"/>
+        <!-- 连接数据库的密码-->
+        <property name="password" value="${password}"/>
+        <!-- 目标数据库的URL 地址-->
+        <property name="driverClassName" value="${driverName}"/>
+        <!-- 数据库驱动全类名-->
+        <property name="url" value="${url}"/>
+    </bean>
+
+    <!-- SQLSessionFactory配置 -->
+    <bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 装配数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 指定 MyBatis 全局配置文件位置 -->
+        <!--<property name="configLocation" value="classpath:mybatis-config.xml"/>-->
+        <property name="configLocation" value="classpath:mybatis/mybatis-config.xml"/>
+        <!-- 指定 Mapper 配置文件位置 -->
+        <!--<property name="mapperLocations" value="classpath:mybatis/mapper/*Mapper.xml"/>-->
+        <property name="mapperLocations" value="classpath:mybatis/mappers/*Mapper.xml"/>
+
+        <!--pageHelper分页插件-->
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <props>
+                            <prop key="helperDialect">mysql</prop>
+                            <prop key="reasonable">true</prop>
+                        </props>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+
+    <!-- 配置 MapperScannerConfigurer-->
+    <!-- 把 MyBatis 创建的 Mapper 接口类型的代理对象扫描到 IOC 容器中 -->
+    <bean id="scannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.qu.crowd.mapper"/>
+    </bean>
+
+
+</beans>

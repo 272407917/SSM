@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--配置包扫描-->
+    <!--
+        因为在SpringMVC中只有 @Controller 注解和 @ControllerAdvice 注解修饰的注解才交给
+        SpringMVC进行管理，
+        只去配置SpringMVC自动扫描的包扫描这两个注解修饰的组件
+
+       use-default-filters： 表示是否使用默认的过滤模式 @Controller @Service @Repository @Component
+    -->
+    <context:component-scan base-package="com.qu.crowd" use-default-filters="false">
+        <!--springMVC只负责扫描包中这两个注解，并加入到IOC容器中-->
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+        <context:include-filter type="assignable" expression="com.qu.crowd.config.CrowdSecurityConfig"/>
+    </context:component-scan>
+
+    <!--配置视图解析器-->
+    <bean id="resourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!--注解扫描驱动-->
+    <mvc:annotation-driven/>
+
+    <!--异常映射，方法一-->
+    <bean id="simpleMappingExceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                <prop key="java.lang.ArithmeticException">main</prop>
+                <prop key="com.qu.crowd.exception.AccessForbiddenException">pages/admin-login</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!--
+   配置视图映射
+       @RequestMapping("/to/admin-login.html")
+       public String toAdminLogin(){
+           return "pages/admin-login";
+       }
+   -->
+    <mvc:view-controller path="/admin/to/admin-login.html" view-name="pages/admin-login"></mvc:view-controller>
+    <mvc:view-controller path="/to/main.html" view-name="pages/main"></mvc:view-controller>
+    <mvc:view-controller path="/to/admin-add.html" view-name="pages/admin-add"></mvc:view-controller>
+    <mvc:view-controller path="/role/to/role-list.html" view-name="pages/role-list"></mvc:view-controller>
+    <mvc:view-controller path="/menu/to/menu.html" view-name="pages/menu"></mvc:view-controller>
+
+    <!--配置拦截器-->
+    <!--<mvc:interceptors>
+        <mvc:interceptor>
+            &lt;!&ndash;表示LoginIntercepter拦截除exclude-mapping外的所有请求&ndash;&gt;
+            <mvc:mapping path="/**"/>
+            &lt;!&ndash;访问登录页面请求&ndash;&gt;
+            <mvc:exclude-mapping path="/admin/to/admin-login.html"></mvc:exclude-mapping>
+            &lt;!&ndash;登录按钮请求&ndash;&gt;
+            <mvc:exclude-mapping path="/admin/do/doLogin.html"></mvc:exclude-mapping>
+            <bean class="com.qu.crowd.intercepters.LoginIntercepter"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors>-->
+
+</beans>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="3.1">
+    
+    <!--编写监听器，在tomcat启动时加载spring配置文件-->
+    <!--再整合security进行权限管理时，在项目启动时的顺序是，Web 组件加载顺序：Listener→Filter→Servlet
+        所以先会去Listener启动创建的SpringIOC容器中寻找springSecurityFilterChain的bean，但是我们没有
+        在ContextLoaderListener 的IOC 容器中扫描SpringSecurity 的配置类，所以springSecurityFilterChain
+        对应的bean 找不到。
+        所以我们需要将springIOC和springMVCIOC进行合并，都在DispatcherServlet中加载
+    -->
+    <!--<context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:spring-persist-*.xml</param-value>
+    </context-param>
+    <listener>
+        &lt;!&ndash;底层会找contextConfigLocation中的配置文件进行操作&ndash;&gt;
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>-->
+
+    <!--解决中文乱码问题，编写字符过滤器
+        在有多个过滤器时，这个字符过滤器要在所有过滤器之前
+    -->
+    <filter>
+        <filter-name>EncodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <!--初始化参数，编码集-->
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <!--是否强制对请求进行编码-->
+        <init-param>
+            <param-name>forceRequestEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <!--是否强制对响应进行编码-->
+        <init-param>
+            <param-name>forceResponseEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <!--过滤所有请求-->
+        <filter-name>EncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!--spring-security权限控制过滤器，过滤器按优先级先后排放-->
+    <filter>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!--配置支持PUT和DELETE请求的过滤器-->
+    <filter>
+        <filter-name>HiddenHttpMethodFilter</filter-name>
+        <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>HiddenHttpMethodFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!--配置前端控制器，springMVC的servlet-->
+    <servlet>
+        <servlet-name>DispatcherServlet</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <!--初始化加载springMVC配置文件-->
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:spring-web-mvc.xml,classpath:spring-persist-*.xml</param-value>
+        </init-param>
+        <!--控制前端控制器在什么时机进行加载
+            值越小，表示越先被加载。
+            如果为正值，表示tomcat容器启动的时候就会加载
+            如果为负值，表示使用到该 Servlet 时才会被加载
+        -->
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DispatcherServlet</servlet-name>
+        <!--前端控制器拦截的请求，只拦截后缀名为.html和.json的两种请求
+            优点：好处1：有利于SEO 优化
+                        让搜索引擎更容易找到我们的网站，有利于网站的推广
+                  好处2：隐藏后端技术实现细节
+                        给黑客入侵系统增加难度
+                  好处3：自动解决静态资源访问问题
+                        访问a.png 本身不符合*.html 这个url-pattern，和SpringMVC 完全没
+                        有关系，当前请求由Tomcat 处理。
+             缺点：不符合RESTFUL 风格使用
+        -->
+        <url-pattern>*.html</url-pattern>
+        <url-pattern>*.json</url-pattern>
+    </servlet-mapping>
+
+
+
+
+</web-app>

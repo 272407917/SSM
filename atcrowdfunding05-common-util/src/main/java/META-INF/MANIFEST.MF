@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Class-Path: httpcore-4.4.1.jar aliyun-java-sdk-ram-3.0.0.jar jdom-1.1.
+ jar httpclient-4.4.1.jar aliyun-java-sdk-sts-3.0.0.jar stax-api-1.0.1
+ .jar aliyun-java-sdk-ecs-4.2.0.jar fastjson-1.2.15.jar commons-codec-
+ 1.9.jar aliyun-java-sdk-core-3.4.0.jar commons-logging-1.2.jar jettis
+ on-1.1.jar aliyun-sdk-oss-3.5.0.jar
+Main-Class: com.qu.crowd.util.CrowdUtil
+
